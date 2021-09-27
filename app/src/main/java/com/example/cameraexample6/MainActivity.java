@@ -82,7 +82,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
     private SensorManager mSensorManager;
 
     //private Button flipCamera;
-   // private Button flashCameraButton;
+    // private Button flashCameraButton;
     //private Button captureImage;
 
     private ImageView take_photo;
@@ -106,7 +106,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
     public GpsTracker gpsTracker;
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
-    String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+    String[] REQUIRED_PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
     double latitude = 0;
     double longitude = 0;
 
@@ -120,14 +120,13 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
     private static Uri imageUri;
     private static String pathUri;
     private File tempFile;
-//    private FirebaseAuth mAuth;
+    //    private FirebaseAuth mAuth;
     private FirebaseDatabase mDatabase;
     private FirebaseStorage mStorage;
 
 
-
-
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+
     static {
         ORIENTATIONS.append(ExifInterface.ORIENTATION_NORMAL, 0);
         ORIENTATIONS.append(ExifInterface.ORIENTATION_ROTATE_90, 90);
@@ -150,12 +149,11 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         setContentView(R.layout.activity_main);
 
 
-
         //Location Permission
         if (!checkLocationServicesStatus()) {//위치서비스 켜져있는지 체크
 
             showDialogForLocationServiceSetting();
-        }else {
+        } else {
 
             checkRunTimePermission();
         }
@@ -166,9 +164,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 //        mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance();
         mStorage = FirebaseStorage.getInstance();
-
-
-
 
 
         // camera surface view created
@@ -188,7 +183,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         surfaceView.getHolder().addCallback(this);
         lp = (ZoomLayout.LayoutParams) surfaceView.getLayoutParams();
         lp.width = size.x;
-        lp.height = (lp.width*16)/9;
+        lp.height = (lp.width * 16) / 9;
         lp.topMargin = 150;
         surfaceView.setLayoutParams(lp);
 
@@ -212,7 +207,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         }
 
         SeekBar ZoomseekBar = findViewById(R.id.zoom);
-
 
 
         //Zoom조절 바
@@ -239,24 +233,24 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
                 try {
                     camera.setPreviewDisplay(surfaceHolder);
-                } catch (Exception e) { }
+                } catch (Exception e) {
+                }
                 camera.startPreview();
 
             }
 
 
+            @Override
+
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
             @Override
 
-            public void onStartTrackingTouch(SeekBar seekBar) { }
-
-            @Override
-
-            public void onStopTrackingTouch(SeekBar seekBar) { }
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
 
         });
-
-
 
 
 //버튼 키고 껐을 때
@@ -272,7 +266,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                 if (isChecked == true) {//ON
                     //buttonLL.setEnabled(false);//LL비활성화
                     //buttonLL.setClickable(false);//LL클릭 불가능
-                    if (buttonLL.isChecked()){
+                    if (buttonLL.isChecked()) {
                         buttonLL.setChecked(false);
                         buttonLL.setBackgroundDrawable(
                                 getResources().getDrawable(R.drawable.image_light_off)
@@ -285,8 +279,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                     buttonSR.setBackgroundDrawable(
                             getResources().getDrawable(R.drawable.image_super_on)
                     );
-                }
-                else{//OFF
+                } else {//OFF
                     //buttonLL.setEnabled(true);//LL활성화
                     //buttonLL.setClickable(true);//LL클릭 가능
                     SR = false;
@@ -302,10 +295,10 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         buttonLL.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(buttonLL.isChecked()){
+                if (buttonLL.isChecked()) {
                     //buttonSR.setEnabled(false); //SR비활성화
                     //buttonSR.setClickable(false); //SR클릭 불가능
-                    if (buttonSR.isChecked()){
+                    if (buttonSR.isChecked()) {
                         buttonSR.setChecked(false);
                         buttonSR.setBackgroundDrawable(
                                 getResources().getDrawable(R.drawable.image_super_off)
@@ -317,8 +310,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                     buttonLL.setBackgroundDrawable(
                             getResources().getDrawable(R.drawable.image_light_on)
                     );
-                }
-                else{
+                } else {
                     //buttonSR.setEnabled(true);//SR활성화
                     //buttonSR.setClickable(true);//SR클릭 가능
                     LL = false;
@@ -336,15 +328,14 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
             public void onClick(View v) {
                 //버튼을 누르면 true
                 //버튼을 다시 눌러서 끄면 SHARE=false가 되도록 구현하기
-                if(buttonShare.isChecked()){
+                if (buttonShare.isChecked()) {
                     SHARE = true;
                     Toast.makeText(MainActivity.this, "SHARE클릭-ON", Toast.LENGTH_SHORT).show();
                     buttonShare.setBackgroundDrawable(
                             getResources().getDrawable(R.drawable.image_flickr_on)
                     );
 
-                }
-                else{
+                } else {
                     SHARE = false;
                     Toast.makeText(MainActivity.this, "SHARE클릭-OFF", Toast.LENGTH_SHORT).show();
                     buttonShare.setBackgroundDrawable(
@@ -361,10 +352,10 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         buttonMyPlace.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(),"버튼 클릭 성공",Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(getApplicationContext(),GoogleMapActivity.class);
+                Toast.makeText(getApplicationContext(), "버튼 클릭 성공", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getApplicationContext(), GoogleMapActivity.class);
                 startActivity(intent);  //페이지전환
-                Toast.makeText(getApplicationContext(),"페이지전환 성공",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "페이지전환 성공", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -392,7 +383,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
             }});
 */
 
-        }
+    }
 
 /*
         Camera.AutoFocusCallback myAutoFocusCallback = new Camera.AutoFocusCallback() {
@@ -402,7 +393,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
             }};
 
 */
-
 
 
     @Override
@@ -437,13 +427,10 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
         try {
             camera.setPreviewDisplay(holder);
-        }
-        catch(IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        Log.e("G","001 surfaceCreated onCreadCamera");
-
+        Log.e("G", "001 surfaceCreated onCreadCamera");
 
 
     }
@@ -479,7 +466,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         }
         return optimalSize;
     }
-
 
 
     private boolean openCamera(int id) {
@@ -629,14 +615,14 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                 break;
             case R.id.take_photo:
                 //위치저장?
-                if(SHARE){
+                if (SHARE) {
                     //위치정보가져오기
                     gpsTracker = new GpsTracker(MainActivity.this);
                     latitude = gpsTracker.getLatitude();
                     longitude = gpsTracker.getLongitude();
                     Toast.makeText(MainActivity.this, "현재위치 \n위도 " + latitude + "\n경도 " + longitude, Toast.LENGTH_LONG).show();
                     takeImage();
-                }else{
+                } else {
                     //아무일도 X
                     takeImage();
                 }
@@ -650,8 +636,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         }
 
     }
-
-
 
 
     private void takeImage() {
@@ -677,7 +661,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                     String state = Environment.getExternalStorageState();
                     File folder = null;
                     if (state.contains(Environment.MEDIA_MOUNTED)) {
-                        folder = new File(Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES)+"/testtest");
+                        folder = new File(Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES) + "/testtest");
 
                     } else {
                         folder = new File(Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES) + "/testtest");
@@ -707,8 +691,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
                         return;
                     }
-
-
 
 
                 } catch (Exception e) {
@@ -759,7 +741,8 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
     }
 
-    int flashInt=0; //flash 버튼 이미지를 바꾸기 위한 변수
+    int flashInt = 0; //flash 버튼 이미지를 바꾸기 위한 변수
+
     private void flashOnButton() {
         if (camera != null) {
             try {
@@ -769,10 +752,9 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                 camera.setParameters(param);
                 flashmode = !flashmode;
                 flashInt = 1 - flashInt;
-                if(flashInt == 1){ //flash를 켰을 때 이미지
+                if (flashInt == 1) { //flash를 켰을 때 이미지
                     flashButton.setImageResource(R.drawable.image_flash_on);
-                }
-                else{//flash를 껐을 때 이미지
+                } else {//flash를 껐을 때 이미지
                     flashButton.setImageResource(R.drawable.image_flash_off);
                 }
 
@@ -786,9 +768,9 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
 
     public final String insertImage(ContentResolver cr,
-                                           Bitmap source,
-                                           String title,
-                                           String description) {
+                                    Bitmap source,
+                                    String title,
+                                    String description) {
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, title);
@@ -828,13 +810,13 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
             stringUrl = url.toString();
         }
 
-        if(SHARE){//파이어베이스 storage에 저장됨
+        if (SHARE) {//파이어베이스 storage에 저장됨
             FirebaseStorage storage = FirebaseStorage.getInstance();//스토리지 인스턴스 생성
-            StorageReference storageRef =storage.getReference();//스토리지 참조
+            StorageReference storageRef = storage.getReference();//스토리지 참조
             java.util.Date date = new java.util.Date();
-            String filename = "picture"+new Timestamp(date.getTime()).toString()+".jpg";
+            String filename = "picture" + new Timestamp(date.getTime()).toString() + ".jpg";
             Uri file = url;
-            StorageReference riversRef = storageRef.child("img/"+filename);
+            StorageReference riversRef = storageRef.child("img/" + filename);
             UploadTask uploadTask = riversRef.putFile(file);
 
 
@@ -851,8 +833,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
             }).addOnCompleteListener(new OnCompleteListener<Uri>() {
                 @Override
                 public void onComplete(@NonNull Task<Uri> task) {
-                    if (task.isSuccessful())
-                    {
+                    if (task.isSuccessful()) {
 
                         //파이어베이스에 데이터베이스 업로드
                         @SuppressWarnings("VisibleForTests")
@@ -880,19 +861,11 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
             });
 
 
-
-
-
         }
-
-
 
 
         return stringUrl;
     }
-
-
-
 
 
     private class SaveImageTask extends AsyncTask<Bitmap, Void, Void> {
@@ -922,7 +895,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                 bitmap = ai.Super_Resolution();             // 초해상도 작업 진행
             } else if (LL) {
                 bitmap = ai.Low_Light();                    // 저조도 작업 진행
-            } else if (SHARE){
+            } else if (SHARE) {
 
 
             }
@@ -934,8 +907,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
             }
 
 
-
-            insertImage(getContentResolver(), bitmap, ""+System.currentTimeMillis(), "");
+            insertImage(getContentResolver(), bitmap, "" + System.currentTimeMillis(), "");
 
 
             return null;
@@ -944,7 +916,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
     }
 
     public Bitmap getRotatedBitmap(Bitmap bitmap, int degrees, int cameraInfo) throws Exception {
-        if(bitmap == null) return null;
+        if (bitmap == null) return null;
         if (degrees == 0) return bitmap;
 
         Matrix m = new Matrix();
@@ -957,8 +929,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
     }
-
-
 
 
 //    GPS 관련 메소드들
@@ -1013,7 +983,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         }
     }
 
-    void checkRunTimePermission(){//필수
+    void checkRunTimePermission() {//필수
 
         //런타임 퍼미션 처리
         // 1. 위치 퍼미션을 가지고 있는지 체크합니다.
@@ -1031,7 +1001,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
 
             // 3.  위치 값을 가져올 수 있음
-
 
 
         } else {  //2. 퍼미션 요청을 허용한 적이 없다면 퍼미션 요청이 필요합니다. 2가지 경우(3-1, 4-1)가 있습니다.
@@ -1056,8 +1025,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         }
 
     }
-
-
 
 
     //여기부터는 GPS 활성화를 위한 메소드들
@@ -1114,8 +1081,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
-
-
 
 
 }

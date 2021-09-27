@@ -1,6 +1,13 @@
 package com.example.cameraexample6;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
@@ -9,6 +16,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.ChildEventListener;
@@ -28,17 +36,21 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
     private DatabaseReference databaseReference = firebaseDatabase.getReference();
     DataDTO dataDTO = new DataDTO();
     MarkerOptions mOptions = new MarkerOptions();
+    View marker_googlemap;
+    ImageView markerimg;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_googlemap);
 
+        marker_googlemap = LayoutInflater.from(this).inflate(R.layout.marker_googlemap, null);
+        markerimg = marker_googlemap.findViewById(R.id.markerimg);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-
 
 
         //firebase값 읽어오기
@@ -50,12 +62,12 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
 
                 HashMap<String, HashMap<String, String>> picInfo = new HashMap<>(); //해시맵 선언
 
-                for (DataSnapshot postSnapshot: snapshot.getChildren()) {
+                for (DataSnapshot postSnapshot : snapshot.getChildren()) {
                     String key = postSnapshot.getKey();
 //                    Log.d("key",""+key.toString());
 //                    Log.d("value",""+postSnapshot.getValue());
                     HashMap<String, String> value = (HashMap<String, String>) postSnapshot.getValue();
-                    picInfo.put(key,value);
+                    picInfo.put(key, value);
 //                    Log.d("key",""+picInfo.get(key).get("latitude").toString());
                     String stringLat = String.valueOf(picInfo.get(key).get("latitude"));
                     String stringLon = String.valueOf(picInfo.get(key).get("longitude"));
@@ -64,18 +76,21 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
                     Double latitude = Double.parseDouble(stringLat);
                     Double longitude = Double.parseDouble(stringLon);
 
-                    dataDTO.setLatitude( latitude );
-                    dataDTO.setLongitude( longitude );
-                    dataDTO.setPictureUri( pictureUri );
+                    dataDTO.setLatitude(latitude);
+                    dataDTO.setLongitude(longitude);
+                    dataDTO.setPictureUri(pictureUri);
 
-                    mOptions.position(new LatLng(dataDTO.getLatitude(), dataDTO.getLongitude()));
+
+
+
+
+
+                    mOptions.position(new LatLng(dataDTO.getLatitude(), dataDTO.getLongitude())).icon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(marker_googlemap)));
 
                     // 마커(핀) 추가
                     mMap.addMarker(mOptions);
 
                 }
-
-
 
 
             }
@@ -102,20 +117,17 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
         });
 
 
-
     }
-
 
 
     @Override
     public void onMapReady(final GoogleMap googleMap) {
-                mMap = googleMap;
-
-        // Add a marker in Seoul and move the camera
+        mMap = googleMap;
         LatLng seoul = new LatLng(37.5654401, 126.9459492);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(seoul));
-    }
 
+
+    }
 
 
 //    @Override
@@ -147,7 +159,27 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(seoul));
 //    }
 
+    private void setCustomMarkerView() {
 
+    }
+
+    // View를 Bitmap으로 변환
+    private Bitmap createDrawableFromView( View view) {
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        (GoogleMapActivity.this).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+//        view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        view.measure(displayMetrics.widthPixels, displayMetrics.heightPixels);
+        view.layout(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels);
+        view.buildDrawingCache();
+        Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(bitmap);
+        view.draw(canvas);
+
+        return bitmap;
+    }
 
 
 }

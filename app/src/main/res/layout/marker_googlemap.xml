@@ -4,15 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_gravity="center"
     android:orientation="vertical"
     tools:context=".GoogleMapActivity">
 
     <ImageView
-        android:id="@+id/marker"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/imagewrapper"
+        android:id="@+id/markerimg"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:layout_gravity="center"
+        android:background="@drawable/imagewrapper"
+        android:src="@drawable/image_hot"
 
         />
 
