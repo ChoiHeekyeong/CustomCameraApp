@@ -2,16 +2,20 @@ package com.example.cameraexample6;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.FragmentActivity;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -56,6 +60,7 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
         //firebase값 읽어오기
         //databaseReference.child("users2").addChildEventListener(
         databaseReference.addChildEventListener(new ChildEventListener() {
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
@@ -79,10 +84,10 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
                     dataDTO.setLatitude(latitude);
                     dataDTO.setLongitude(longitude);
                     dataDTO.setPictureUri(pictureUri);
-
-
-
-
+                    Log.d("Pic",""+dataDTO.getPictureUri());
+//                    markerimg.setImageDrawable();
+                    Glide.with(getApplicationContext()).load(pictureUri).override(300,300).into(markerimg);
+                    //getApplicationContext() 대신 GoogleActivity.this
 
 
                     mOptions.position(new LatLng(dataDTO.getLatitude(), dataDTO.getLongitude())).icon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(marker_googlemap)));

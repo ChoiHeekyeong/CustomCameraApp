@@ -839,6 +839,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                         @SuppressWarnings("VisibleForTests")
                         Uri downloadUrl = task.getResult();
                         DataDTO dataDTO = new DataDTO();
+//                        dataDTO.setPictureUri(downloadUrl);
                         dataDTO.setPictureUri(downloadUrl.toString());
                         dataDTO.setLatitude(latitude);//위도경도는 OnClick메소드에서 측정
                         dataDTO.setLongitude(longitude);
