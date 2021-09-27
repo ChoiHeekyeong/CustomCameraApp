@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "886866356569",
+    "project_id": "dankookcustomcamera-3b8c2",
+    "storage_bucket": "dankookcustomcamera-3b8c2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:886866356569:android:bfa9d592761aa758a84448",
+        "android_client_info": {
+          "package_name": "com.example.cameraexample6"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "886866356569-li6q7rg1gk15ubork2b2t52f2q5tm8vc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.cameraexample6",
+            "certificate_hash": "928911db1b694e4de7cbdc0e88f516a32bf6994c"
+          }
+        },
+        {
+          "client_id": "886866356569-n728v9ve50rarpv1g52b3p0doqle4vfu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCByWeNFOBvofOG2UByJ4KrYf69319Y3jU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "886866356569-n728v9ve50rarpv1g52b3p0doqle4vfu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
