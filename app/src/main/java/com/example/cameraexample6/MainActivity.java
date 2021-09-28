@@ -613,16 +613,16 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                 flipCamera();
                 break;
             case R.id.take_photo:
-                //위치저장?
                 if (SHARE) {
                     //위치정보가져오기
                     gpsTracker = new GpsTracker(MainActivity.this);
                     latitude = gpsTracker.getLatitude();
                     longitude = gpsTracker.getLongitude();
-                    Toast.makeText(MainActivity.this, "현재위치 \n위도 " + latitude + "\n경도 " + longitude, Toast.LENGTH_LONG).show();
-                    takeImage();
+                    Toast.makeText(MainActivity.this,
+                            "현재위치 \n위도 " + latitude + "\n경도 " + longitude, Toast.LENGTH_LONG).show();
+                    takeImage(); //사진 저장
                 } else {
-                    //아무일도 X
+                    //아무일도 일어나지 않고 사진만 저장
                     takeImage();
                 }
 
@@ -834,17 +834,14 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                 public void onComplete(@NonNull Task<Uri> task) {
                     if (task.isSuccessful()) {
 
-                        //파이어베이스에 데이터베이스 업로드
-                        @SuppressWarnings("VisibleForTests")
+                        /*파이어베이스에 데이터베이스 업로드*/
                         Uri downloadUrl = task.getResult();
                         DataDTO dataDTO = new DataDTO();
-//                        dataDTO.setPictureUri(downloadUrl);
                         dataDTO.setPictureUri(downloadUrl.toString());
                         dataDTO.setLatitude(latitude);//위도경도는 OnClick메소드에서 측정
                         dataDTO.setLongitude(longitude);
 
-
-                        //image 라는 테이블에 json 형태로 담긴다.
+                        //users2 라는 테이블에 json 형태로 담긴다.
                         //database.getReference().child("users2").setValue(dataDTO);
                         //  .push()  :  데이터가 쌓인다.
                         mDatabase.getReference().child("users2").push().setValue(dataDTO);

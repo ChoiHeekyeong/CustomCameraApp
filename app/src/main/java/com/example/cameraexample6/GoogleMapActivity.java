@@ -153,7 +153,6 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
 
         String modalId = marker.getId();    //선택한 마커 id값 가져오기
         String modalUri = markerMap.get(marker.getId());    //이미지주소
-//        System.out.println("id값:"+modalId);
 
         for (int i = 0; i < markerMap.size(); i++) {
             if (modalId.equals("m" + i)) {
