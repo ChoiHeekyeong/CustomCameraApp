@@ -1,5 +1,6 @@
 package com.example.cameraexample6;
 
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.os.Build;
@@ -13,6 +14,7 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 
 import com.bumptech.glide.Glide;
@@ -22,6 +24,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -33,7 +36,7 @@ import com.google.firebase.database.annotations.Nullable;
 import java.util.HashMap;
 
 
-public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCallback {
+public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
     private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
@@ -42,7 +45,7 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
     MarkerOptions mOptions = new MarkerOptions();
     View marker_googlemap;
     ImageView markerimg;
-
+    HashMap<String, String> markerMap = new HashMap<>(); //마커 id값과 사진uri값을 저장할 해시맵
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +66,7 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
+                String markerId;
 
                 HashMap<String, HashMap<String, String>> picInfo = new HashMap<>(); //해시맵 선언
 
@@ -84,20 +87,24 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
                     dataDTO.setLatitude(latitude);
                     dataDTO.setLongitude(longitude);
                     dataDTO.setPictureUri(pictureUri);
-                    Log.d("Pic",""+dataDTO.getPictureUri());
+//                    Log.d("Pic",""+dataDTO.getPictureUri());
 //                    markerimg.setImageDrawable();
-                    Glide.with(getApplicationContext()).load(pictureUri).override(300,300).into(markerimg);
-                    //getApplicationContext() 대신 GoogleActivity.this
+                    Glide.with(getApplicationContext()).load(pictureUri).override(700, 200).into(markerimg);
+                    //getApplicationContext() 대신 GoogleActivity.this써도 O
 
 
-                    mOptions.position(new LatLng(dataDTO.getLatitude(), dataDTO.getLongitude())).icon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(marker_googlemap)));
+                    mOptions.position(new LatLng(dataDTO.getLatitude(), dataDTO.getLongitude())) //위치 셋팅
+                            .icon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(marker_googlemap))); //커스텀마커 적용
 
                     // 마커(핀) 추가
-                    mMap.addMarker(mOptions);
+//                    mMap.addMarker(mOptions);
+                    Marker marker = mMap.addMarker(mOptions);
+                    markerId = marker.getId(); //마커 아이디
+                    markerMap.put(markerId, dataDTO.getPictureUri()); //(마커 아이디 : 사진uri) 해시맵에 넣기
 
                 }
 
-
+                Log.d("총갯수?@@@", "" + markerMap.size());
             }
 
             @Override
@@ -131,45 +138,48 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
         LatLng seoul = new LatLng(37.5654401, 126.9459492);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(seoul));
 
+        mMap.setOnMarkerClickListener(this); //onMarkerClick 실행을 위한 메소드
+
+
 
     }
 
+    @Override
+    public boolean onMarkerClick(@NonNull Marker marker) {
+        //커스텀 모달창으로 띄울 xml
+        View modal = View.inflate(this, R.layout.modal, null);
+        ImageView modalImg = modal.findViewById(R.id.modalimg);
 
-//    @Override
-//    public void onMapReady(final GoogleMap googleMap) {
-//        mMap = googleMap;
-//
-//        // 맵 터치 이벤트 구현 //
-//        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
-//            @Override
-//            public void onMapClick(LatLng point) {
-//                MarkerOptions mOptions = new MarkerOptions();
-//                // 마커 타이틀
-//                mOptions.title("마커 좌표");
-//                Double latitude = point.latitude; // 위도
-//                Double longitude = point.longitude; // 경도
-//                // 마커의 스니펫(간단한 텍스트) 설정
-//                mOptions.snippet(latitude.toString() + ", " + longitude.toString());
-//                // LatLng: 위도 경도 쌍을 나타냄
-//                mOptions.position(new LatLng(latitude, longitude));
-//                // 마커(핀) 추가
-//                googleMap.addMarker(mOptions);
-//            }
-//        });
-//        ////////////////////
-//
-//        // Add a marker in Seoul and move the camera
-//        LatLng seoul = new LatLng(37.5654401, 126.9459492);
-//        mMap.addMarker(new MarkerOptions().position(seoul).title("Marker in Seoul"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(seoul));
-//    }
 
-    private void setCustomMarkerView() {
+        String modalId = marker.getId();    //선택한 마커 id값 가져오기
+        String modalUri = markerMap.get(marker.getId());    //이미지주소
+//        System.out.println("id값:"+modalId);
 
+        for (int i = 0; i < markerMap.size(); i++) {
+            if (modalId.equals("m" + i)) {
+                Glide.with(getApplicationContext()).load(modalUri).override(700, 200).into(modalImg);
+            }
+        }
+
+
+        AlertDialog.Builder dlg = new AlertDialog.Builder(this);
+        dlg.setMessage("View")
+                .setView(modal)
+                .setNegativeButton("닫기", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+                .create()
+                .show();
+
+
+        return false;
     }
+
 
     // View를 Bitmap으로 변환
-    private Bitmap createDrawableFromView( View view) {
+    private Bitmap createDrawableFromView(View view) {
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         (GoogleMapActivity.this).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);

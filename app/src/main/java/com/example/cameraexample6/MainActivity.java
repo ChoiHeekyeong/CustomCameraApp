@@ -352,18 +352,17 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         buttonMyPlace.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "버튼 클릭 성공", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "버튼 클릭 성공", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(getApplicationContext(), GoogleMapActivity.class);
                 startActivity(intent);  //페이지전환
-                Toast.makeText(getApplicationContext(), "페이지전환 성공", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "페이지전환 성공", Toast.LENGTH_SHORT).show();
             }
         });
 
         buttonHotPlace.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-//                databaseReference.child("message").push().setValue("2");
-//                databaseReference.child("message").child("gbgg").child("saa").setValue("ddf");
+
             }
         });
 

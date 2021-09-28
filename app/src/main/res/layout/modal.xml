@@ -4,26 +4,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@drawable/markimg"
     android:layout_gravity="center"
+    android:orientation="vertical"
     tools:context=".GoogleMapActivity">
 
     <ImageView
-        android:id="@+id/markerimg"
+        android:id="@+id/modalimg"
+        android:layout_width="250dp"
+        android:layout_height="200dp"
         android:layout_marginTop="10dp"
-        android:layout_marginLeft="15dp"
-        android:layout_marginRight="15dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:src="@drawable/tshirtimg"
+        android:layout_gravity="center"
         android:visibility="visible"
         tools:visibility="visible"
-        android:src="@drawable/tshirtimg"
 
         />
-
-
-
 
 
 </LinearLayout>
