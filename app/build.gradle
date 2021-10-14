@@ -19,6 +19,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField "String", "MAPS_API_KEY", properties['api.key']
+        buildConfigField "String", "WEATHER_API_KEY", properties['weather_api_key']
 
     }
 

@@ -132,7 +132,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
     //Retrofit
     public static String BaseUrl = "https://api.openweathermap.org/";
-    public static String AppId = "cc3501733f14d29f94c5e9e02c7cc75b";
+    public static String AppId = BuildConfig.WEATHER_API_KEY;
     public static String UNITS = "metric"; //화씨
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
