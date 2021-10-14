@@ -6,11 +6,11 @@ import android.graphics.Canvas;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -33,6 +33,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -45,7 +46,12 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
     MarkerOptions mOptions = new MarkerOptions();
     View marker_googlemap;
     ImageView markerimg;
-    HashMap<String, String> markerMap = new HashMap<>(); //마커 id값과 사진uri값을 저장할 해시맵
+//    HashMap<String, String> markerMap = new HashMap<>(); //마커 id값과 사진uri값을 저장할 해시맵
+    HashMap<String, ArrayList> markerMap = new HashMap<>(); //마커 id값과 사진uri값을 저장할 해시맵
+
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,16 +83,23 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
                     HashMap<String, String> value = (HashMap<String, String>) postSnapshot.getValue();
                     picInfo.put(key, value);
 //                    Log.d("key",""+picInfo.get(key).get("latitude").toString());
+//                    Log.d("확인",""+picInfo.get(key).toString());
                     String stringLat = String.valueOf(picInfo.get(key).get("latitude"));
                     String stringLon = String.valueOf(picInfo.get(key).get("longitude"));
                     String pictureUri = picInfo.get(key).get("pictureUri");
-                    //위도경도는 Double로 변환
+                    String stringTemp = String.valueOf(picInfo.get(key).get("temperature"));
+                    String weather = picInfo.get(key).get("weather");
+
+                    //위도,경도,온도\는 Double로 변환
                     Double latitude = Double.parseDouble(stringLat);
                     Double longitude = Double.parseDouble(stringLon);
+                    Double temperature = Double.parseDouble(stringTemp);
 
                     dataDTO.setLatitude(latitude);
                     dataDTO.setLongitude(longitude);
                     dataDTO.setPictureUri(pictureUri);
+                    dataDTO.setTemperature(temperature);
+                    dataDTO.setWeather(weather);
 //                    Log.d("Pic",""+dataDTO.getPictureUri());
 //                    markerimg.setImageDrawable();
                     Glide.with(getApplicationContext()).load(pictureUri).override(700, 200).into(markerimg);
@@ -100,11 +113,19 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
 //                    mMap.addMarker(mOptions);
                     Marker marker = mMap.addMarker(mOptions);
                     markerId = marker.getId(); //마커 아이디
-                    markerMap.put(markerId, dataDTO.getPictureUri()); //(마커 아이디 : 사진uri) 해시맵에 넣기
+//                    markerMap.put(markerId, dataDTO.getPictureUri()); //(마커 아이디 : 사진uri) 해시맵에 넣기 //ㅁㅁㅁㅁㅁㅁ
+                    ArrayList valueList = new ArrayList();
+                    valueList.add(dataDTO.getPictureUri());
+                    valueList.add(dataDTO.getLatitude());
+                    valueList.add(dataDTO.getLongitude());
+                    valueList.add(dataDTO.getTemperature());
+                    valueList.add(dataDTO.getWeather());
+                    markerMap.put(markerId,valueList);
+
 
                 }
 
-                Log.d("총갯수?@@@", "" + markerMap.size());
+//                Log.d("총갯수?@@@", "" + markerMap.size());
             }
 
             @Override
@@ -150,15 +171,33 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
         View modal = View.inflate(this, R.layout.modal, null);
         ImageView modalImg = modal.findViewById(R.id.modalimg);
 
+        TextView latitudeTextView = modal.findViewById(R.id.latitudeTextView);
+        TextView longitudeTextView = modal.findViewById(R.id.longitudeTextView);
+        TextView temperatureTextView = modal.findViewById(R.id.temperatureTextView);
+        TextView weatherTextView = modal.findViewById(R.id.weatherTextView);
+
 
         String modalId = marker.getId();    //선택한 마커 id값 가져오기
-        String modalUri = markerMap.get(marker.getId());    //이미지주소
+//        String modalUri = markerMap.get(marker.getId());    //이미지주소 //ㅁㅁㅁㅁㅁㅁ
+        String modalUri = (String) markerMap.get(marker.getId()).get(0);
+        Double modalLat = (Double) markerMap.get(marker.getId()).get(1);
+        Double modalLon = (Double) markerMap.get(marker.getId()).get(2);
+        Double modalTemp = (Double) markerMap.get(marker.getId()).get(3);
+        String modalWeather = (String) markerMap.get(marker.getId()).get(4);
+
 
         for (int i = 0; i < markerMap.size(); i++) {
             if (modalId.equals("m" + i)) {
                 Glide.with(getApplicationContext()).load(modalUri).override(700, 200).into(modalImg);
+                latitudeTextView.setText("위도: "+modalLat);
+                longitudeTextView.setText(",경도: "+modalLon);
+                temperatureTextView.setText("온도: "+modalTemp);
+                weatherTextView.setText(",날씨: "+modalWeather);
+
             }
         }
+
+
 
 
         AlertDialog.Builder dlg = new AlertDialog.Builder(this);
@@ -175,6 +214,7 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
 
         return false;
     }
+
 
 
     // View를 Bitmap으로 변환
@@ -194,6 +234,13 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
 
         return bitmap;
     }
+
+
+
+
+
+
+
 
 
 }

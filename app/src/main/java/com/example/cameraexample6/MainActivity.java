@@ -67,6 +67,10 @@ import java.io.OutputStream;
 import java.sql.Timestamp;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 import static android.os.Environment.DIRECTORY_PICTURES;
 //import static android.provider.MediaStore.Images.Media.insertImage;
 
@@ -116,6 +120,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
 
     //FireBase에 이미지 넣기 TEST
+    DataDTO dataDTO = new DataDTO();
     public static final int PICK_FROM_ALBUM = 1;
     private static Uri imageUri;
     private static String pathUri;
@@ -124,6 +129,11 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
     private FirebaseDatabase mDatabase;
     private FirebaseStorage mStorage;
 
+
+    //Retrofit
+    public static String BaseUrl = "https://api.openweathermap.org/";
+    public static String AppId = "cc3501733f14d29f94c5e9e02c7cc75b";
+    public static String UNITS = "metric"; //화씨
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
@@ -620,6 +630,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                     longitude = gpsTracker.getLongitude();
                     Toast.makeText(MainActivity.this,
                             "현재위치 \n위도 " + latitude + "\n경도 " + longitude, Toast.LENGTH_LONG).show();
+                    getCurrentData(latitude,longitude);//takeImage()보다 먼저 오기.
                     takeImage(); //사진 저장
                 } else {
                     //아무일도 일어나지 않고 사진만 저장
@@ -834,9 +845,9 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
                 public void onComplete(@NonNull Task<Uri> task) {
                     if (task.isSuccessful()) {
 
-                        /*파이어베이스에 데이터베이스 업로드*/
+                        /*파이어베이스에 데이터베이스 업로드. 날씨정보는 다른 메소드에서 DTO에 set*/
                         Uri downloadUrl = task.getResult();
-                        DataDTO dataDTO = new DataDTO();
+//                        DataDTO dataDTO = new DataDTO();
                         dataDTO.setPictureUri(downloadUrl.toString());
                         dataDTO.setLatitude(latitude);//위도경도는 OnClick메소드에서 측정
                         dataDTO.setLongitude(longitude);
@@ -1077,6 +1088,63 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+
+
+
+    void getCurrentData(double latitude, double longitude){
+        retrofit2.Retrofit retrofit = new retrofit2.Retrofit.Builder()
+                .baseUrl(BaseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        WeatherService service = retrofit.create(WeatherService.class);
+        Call<WeatherResponse> call = service.getCurrentWeatherData(latitude, longitude, AppId,UNITS);
+
+        call.enqueue(new retrofit2.Callback<WeatherResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<WeatherResponse> call, @NonNull Response<WeatherResponse> response) {
+                if (response.code() == 200) {
+                    WeatherResponse weatherResponse = response.body();
+                    assert weatherResponse != null;
+                    
+                    /*파이어베이스에 온도, 날씨 업로드*/
+                    double temp = weatherResponse.main.temp;
+                    String weather = weatherResponse.weather.get(0).main;
+
+                    dataDTO.setTemperature(temp);
+                    dataDTO.setWeather(weather);
+
+//                    String stringBuilder =
+//                            "Country: " +
+//                            weatherResponse.sys.country +
+//                            "\n" +
+//                            "Temperature: " +
+//                            weatherResponse.main.temp +
+//                            "\n" +
+//                            "Temperature(Min): " +
+//                            weatherResponse.main.temp_min +
+//                            "\n" +
+//                            "Temperature(Max): " +
+//                            weatherResponse.main.temp_max +
+//                            "\n" +
+//                            "Weather: " +
+//                            weatherResponse.weather.get(0).main;
+//
+//                    Log.d("레트로핏",stringBuilder);
+
+
+                }
+            }
+
+
+            @Override
+            public void onFailure(@NonNull Call<WeatherResponse> call, @NonNull Throwable t) {
+                Log.d("레트로핏2",t.getMessage());
+            }
+        });
+
+
     }
 
 
