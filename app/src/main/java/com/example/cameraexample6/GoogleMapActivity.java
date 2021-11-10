@@ -3,6 +3,8 @@ package com.example.cameraexample6;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -11,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -33,8 +36,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 
 
 public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -46,7 +52,7 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
     MarkerOptions mOptions = new MarkerOptions();
     View marker_googlemap;
     ImageView markerimg;
-//    HashMap<String, String> markerMap = new HashMap<>(); //마커 id값과 사진uri값을 저장할 해시맵
+    //    HashMap<String, String> markerMap = new HashMap<>(); //마커 id값과 사진uri값을 저장할 해시맵
     HashMap<String, ArrayList> markerMap = new HashMap<>(); //마커 id값과 사진uri값을 저장할 해시맵
 
 
@@ -63,7 +69,9 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        mapFragment.getMapAsync(GoogleMapActivity.this);
+
+
 
 
         //firebase값 읽어오기
@@ -78,19 +86,17 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
 
                 for (DataSnapshot postSnapshot : snapshot.getChildren()) {
                     String key = postSnapshot.getKey();
-//                    Log.d("key",""+key.toString());
-//                    Log.d("value",""+postSnapshot.getValue());
+
                     HashMap<String, String> value = (HashMap<String, String>) postSnapshot.getValue();
                     picInfo.put(key, value);
-//                    Log.d("key",""+picInfo.get(key).get("latitude").toString());
-//                    Log.d("확인",""+picInfo.get(key).toString());
+
                     String stringLat = String.valueOf(picInfo.get(key).get("latitude"));
                     String stringLon = String.valueOf(picInfo.get(key).get("longitude"));
                     String pictureUri = picInfo.get(key).get("pictureUri");
                     String stringTemp = String.valueOf(picInfo.get(key).get("temperature"));
                     String weather = picInfo.get(key).get("weather");
 
-                    //위도,경도,온도\는 Double로 변환
+                    //위도,경도,온도는 Double로 변환
                     Double latitude = Double.parseDouble(stringLat);
                     Double longitude = Double.parseDouble(stringLon);
                     Double temperature = Double.parseDouble(stringTemp);
@@ -100,20 +106,19 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
                     dataDTO.setPictureUri(pictureUri);
                     dataDTO.setTemperature(temperature);
                     dataDTO.setWeather(weather);
-//                    Log.d("Pic",""+dataDTO.getPictureUri());
-//                    markerimg.setImageDrawable();
-                    Glide.with(getApplicationContext()).load(pictureUri).override(700, 200).into(markerimg);
-                    //getApplicationContext() 대신 GoogleActivity.this써도 O
 
+
+                    Glide.with(getApplicationContext()).load(pictureUri).override(700, 230).into(markerimg);
+                    //getApplicationContext() 대신 GoogleActivity.this써도 O
 
                     mOptions.position(new LatLng(dataDTO.getLatitude(), dataDTO.getLongitude())) //위치 셋팅
                             .icon(BitmapDescriptorFactory.fromBitmap(createDrawableFromView(marker_googlemap))); //커스텀마커 적용
 
+
                     // 마커(핀) 추가
-//                    mMap.addMarker(mOptions);
                     Marker marker = mMap.addMarker(mOptions);
                     markerId = marker.getId(); //마커 아이디
-//                    markerMap.put(markerId, dataDTO.getPictureUri()); //(마커 아이디 : 사진uri) 해시맵에 넣기 //ㅁㅁㅁㅁㅁㅁ
+
                     ArrayList valueList = new ArrayList();
                     valueList.add(dataDTO.getPictureUri());
                     valueList.add(dataDTO.getLatitude());
@@ -121,7 +126,6 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
                     valueList.add(dataDTO.getTemperature());
                     valueList.add(dataDTO.getWeather());
                     markerMap.put(markerId,valueList);
-
 
                 }
 
@@ -162,7 +166,6 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
         mMap.setOnMarkerClickListener(this); //onMarkerClick 실행을 위한 메소드
 
 
-
     }
 
     @Override
@@ -175,6 +178,8 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
         TextView longitudeTextView = modal.findViewById(R.id.longitudeTextView);
         TextView temperatureTextView = modal.findViewById(R.id.temperatureTextView);
         TextView weatherTextView = modal.findViewById(R.id.weatherTextView);
+        TextView addressTextView = modal.findViewById(R.id.addressTextView);
+        ImageView weatherImageView = modal.findViewById(R.id.weathericon);
 
 
         String modalId = marker.getId();    //선택한 마커 id값 가져오기
@@ -185,18 +190,40 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
         Double modalTemp = (Double) markerMap.get(marker.getId()).get(3);
         String modalWeather = (String) markerMap.get(marker.getId()).get(4);
 
+        switch (modalWeather){
+            case "Clear":
+                weatherImageView.setImageResource(R.drawable.icon_clear);
+                break;
+            case "Clouds":
+                weatherImageView.setImageResource(R.drawable.icon_clouds);
+                break;
+            case "Rain":
+                weatherImageView.setImageResource(R.drawable.icon_rain);
+                break;
+            case "Snow":
+                weatherImageView.setImageResource(R.drawable.icon_snow);
+                break;
+            default :
+                weatherImageView.setImageResource(R.drawable.icon_clear);
+                break;
+
+        }
+
+        //지번주소
+        GpsTracker gpsTracker = new GpsTracker(GoogleMapActivity.this);
+        String address = getCurrentAddress(modalLat, modalLon);
+
 
         for (int i = 0; i < markerMap.size(); i++) {
             if (modalId.equals("m" + i)) {
                 Glide.with(getApplicationContext()).load(modalUri).override(700, 200).into(modalImg);
                 latitudeTextView.setText("위도: "+modalLat);
-                longitudeTextView.setText(",경도: "+modalLon);
+                longitudeTextView.setText("경도: "+modalLon);
                 temperatureTextView.setText("온도: "+modalTemp);
-                weatherTextView.setText(",날씨: "+modalWeather);
-
+                weatherTextView.setText("날씨: "+modalWeather);
+                addressTextView.setText(address);
             }
         }
-
 
 
 
@@ -236,9 +263,37 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
     }
 
 
+    public String getCurrentAddress( double latitude, double longitude) {
 
+        //지오코더... GPS를 주소로 변환
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
 
+        List<Address> addresses;
 
+        try {
+
+            addresses = geocoder.getFromLocation(
+                    latitude,
+                    longitude,
+                    7);
+        } catch (IOException ioException) {
+            //네트워크 문제
+            Toast.makeText(this, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show();
+            return "지오코더 서비스 사용불가";
+        } catch (IllegalArgumentException illegalArgumentException) {
+            Toast.makeText(this, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show();
+            return "잘못된 GPS 좌표";
+        }
+
+        if (addresses == null || addresses.size() == 0) {
+            Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show();
+            return "주소 미발견";
+        }
+
+        Address address = addresses.get(0);
+        return address.getAddressLine(0).toString();
+
+    }
 
 
 

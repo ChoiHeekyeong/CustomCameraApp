@@ -1,77 +1,1212 @@
+//package com.example.cameraexample6;
+////참고
+////https://www.c-sharpcorner.com/UploadFile/9e8439/how-to-make-a-custom-camera-ion-android/
+//
+//import android.Manifest;
+//import android.app.Activity;
+//import android.app.AlertDialog;
+//import android.app.AlertDialog.Builder;
+//import android.content.ContentResolver;
+//import android.content.ContentValues;
+//import android.content.Context;
+//import android.content.DialogInterface;
+//import android.content.Intent;
+//import android.content.pm.PackageManager;
+//import android.graphics.Bitmap;
+//import android.graphics.BitmapFactory;
+//import android.graphics.Matrix;
+//import android.graphics.Point;
+//import android.hardware.Camera;
+//import android.hardware.Camera.CameraInfo;
+//import android.hardware.Camera.ErrorCallback;
+//import android.hardware.Camera.Parameters;
+//import android.hardware.Camera.PictureCallback;
+//import android.hardware.Sensor;
+//import android.hardware.SensorManager;
+//import android.location.LocationManager;
+//import android.media.ExifInterface;
+//import android.net.Uri;
+//import android.os.AsyncTask;
+//import android.os.Bundle;
+//import android.os.Environment;
+//import android.provider.MediaStore;
+//import android.util.Log;
+//import android.util.SparseIntArray;
+//import android.view.ContextThemeWrapper;
+//import android.view.Display;
+//import android.view.Surface;
+//import android.view.SurfaceHolder;
+//import android.view.SurfaceHolder.Callback;
+//import android.view.SurfaceView;
+//import android.view.View;
+//import android.view.View.OnClickListener;
+//import android.view.WindowManager;
+//import android.widget.CompoundButton;
+//import android.widget.ImageButton;
+//import android.widget.ImageView;
+//import android.widget.SeekBar;
+//import android.widget.Toast;
+//import android.widget.ToggleButton;
+//
+//import androidx.annotation.NonNull;
+//import androidx.core.app.ActivityCompat;
+//import androidx.core.content.ContextCompat;
+//
+//import com.google.android.gms.tasks.Continuation;
+//import com.google.android.gms.tasks.OnCompleteListener;
+//import com.google.android.gms.tasks.Task;
+//import com.google.firebase.database.DatabaseReference;
+//import com.google.firebase.database.FirebaseDatabase;
+//import com.google.firebase.storage.FirebaseStorage;
+//import com.google.firebase.storage.StorageReference;
+//import com.google.firebase.storage.UploadTask;
+//
+//import java.io.File;
+//import java.io.IOException;
+//import java.io.OutputStream;
+//import java.sql.Timestamp;
+//import java.util.List;
+//
+//import retrofit2.Call;
+//import retrofit2.Response;
+//import retrofit2.converter.gson.GsonConverterFactory;
+//
+//import static android.os.Environment.DIRECTORY_PICTURES;
+////import static android.provider.MediaStore.Images.Media.insertImage;
+//
+//
+//public class MainActivity extends Activity implements Callback, OnClickListener {
+//
+//    private SurfaceView surfaceView;
+//    private ZoomLayout zoomLayout;
+//    private SurfaceHolder surfaceHolder;
+//    private Camera camera;
+//    private Sensor mAccelerometer;
+//    private Sensor mMagnetometer;
+//    private SensorManager mSensorManager;
+//
+//    //private Button flipCamera;
+//    // private Button flashCameraButton;
+//    //private Button captureImage;
+//
+//    private ImageView take_photo;
+//    private ImageView flashButton;
+//    private ImageView cameraChangeButton;
+//
+//
+//    private int cameraId;
+//    private boolean flashmode = false;
+//    private int rotation;
+//    private int mDeviceRotation;
+//    private DeviceOrientation deviceOrientation;
+//
+//    public ZoomLayout.LayoutParams lp;
+//
+//    Boolean SR = false;
+//    Boolean LL = false;
+//    Boolean SHARE = false;
+//
+//    //GPS관련
+//    public GpsTracker gpsTracker;
+//    private static final int GPS_ENABLE_REQUEST_CODE = 2001;
+//    private static final int PERMISSIONS_REQUEST_CODE = 100;
+//    String[] REQUIRED_PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+//    double latitude = 0;
+//    double longitude = 0;
+//
+//    //파이어베이스 관련
+//    private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
+//    private DatabaseReference databaseReference = firebaseDatabase.getReference();
+//
+//
+//    //FireBase에 이미지 넣기 TEST
+//    DataDTO dataDTO = new DataDTO();
+//    public static final int PICK_FROM_ALBUM = 1;
+//    private static Uri imageUri;
+//    private static String pathUri;
+//    private File tempFile;
+//    //    private FirebaseAuth mAuth;
+//    private FirebaseDatabase mDatabase;
+//    private FirebaseStorage mStorage;
+//
+//
+//    //Retrofit
+//    public static String BaseUrl = "https://api.openweathermap.org/";
+//    public static String AppId = BuildConfig.WEATHER_API_KEY;
+//    public static String UNITS = "metric"; //화씨
+//
+//    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+//
+//    static {
+//        ORIENTATIONS.append(ExifInterface.ORIENTATION_NORMAL, 0);
+//        ORIENTATIONS.append(ExifInterface.ORIENTATION_ROTATE_90, 90);
+//        ORIENTATIONS.append(ExifInterface.ORIENTATION_ROTATE_180, 180);
+//        ORIENTATIONS.append(ExifInterface.ORIENTATION_ROTATE_270, 270);
+//    }
+//
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        // 상태바를 안보이도록 합니다.
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//
+//        // 화면 켜진 상태를 유지합니다.
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+//                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+//
+//        setContentView(R.layout.activity_main);
+//
+//
+//        //Location Permission
+//        if (!checkLocationServicesStatus()) {//위치서비스 켜져있는지 체크
+//
+//            showDialogForLocationServiceSetting();
+//        } else {
+//
+//            checkRunTimePermission();
+//        }
+//
+//
+//        //FireBase에 이미지 넣기 TEST
+//        // Authentication, Database, Storage 초기화
+////        mAuth = FirebaseAuth.getInstance();
+//        mDatabase = FirebaseDatabase.getInstance();
+//        mStorage = FirebaseStorage.getInstance();
+//
+//
+//        // camera surface view created
+//        cameraId = CameraInfo.CAMERA_FACING_BACK;
+//
+//        cameraChangeButton = findViewById(R.id.cameraChangeButton);
+//        flashButton = findViewById(R.id.flashButton);
+//        take_photo = findViewById(R.id.take_photo);
+//
+//
+//        Display display = this.getWindowManager().getDefaultDisplay();
+//        Point size = new Point();
+//        display.getSize(size);
+//
+//        zoomLayout = findViewById(R.id.zoomlayout);
+//        surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+//        surfaceView.getHolder().addCallback(this);
+//        lp = (ZoomLayout.LayoutParams) surfaceView.getLayoutParams();
+//        lp.width = size.x;
+//        lp.height = (lp.width * 16) / 9;
+//        lp.topMargin = 150;
+//        surfaceView.setLayoutParams(lp);
+//
+//        surfaceHolder = surfaceView.getHolder();
+//        surfaceHolder.addCallback(this);
+//        cameraChangeButton.setOnClickListener(this);
+//        take_photo.setOnClickListener(this);
+//        flashButton.setOnClickListener(this);
+//        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+//        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+//        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+//        deviceOrientation = new DeviceOrientation();
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+//
+//        if (Camera.getNumberOfCameras() > 1) {
+//            cameraChangeButton.setVisibility(View.VISIBLE);
+//        }
+//        if (!getBaseContext().getPackageManager().hasSystemFeature(
+//                PackageManager.FEATURE_CAMERA_FLASH)) {
+//            flashButton.setVisibility(View.GONE);
+//        }
+//
+//        SeekBar ZoomseekBar = findViewById(R.id.zoom);
+//
+//
+//        //Zoom조절 바
+//        ZoomseekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//
+//            @Override
+//
+//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//                Camera.Parameters p = camera.getParameters();
+//                int maxZoom = p.getMaxZoom();
+//                int zoom = p.getZoom();
+//                ZoomseekBar.setMax(maxZoom);
+//                //Log.d("MaxZoom= ",maxZoom+"");
+//
+//                if (p.isZoomSupported()) {
+//                    zoom += 10;
+//                    if (zoom > maxZoom) {
+//                        zoom -= 10;
+//                    }
+//                    p.setZoom(progress);
+//                }
+//
+//                camera.setParameters(p);
+//
+//                try {
+//                    camera.setPreviewDisplay(surfaceHolder);
+//                } catch (Exception e) {
+//                }
+//                camera.startPreview();
+//
+//            }
+//
+//
+//            @Override
+//
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//            }
+//
+//            @Override
+//
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//            }
+//
+//        });
+//
+//
+////버튼 키고 껐을 때
+//        ToggleButton buttonSR = findViewById(R.id.superResolution);
+//        ToggleButton buttonLL = findViewById(R.id.lowLightEnhancement);
+//        ToggleButton buttonShare = findViewById(R.id.shareButton);
+//        ImageButton buttonMyPlace = findViewById(R.id.my_btn);
+//        ImageButton buttonHotPlace = findViewById(R.id.hot_btn);
+//
+//        buttonSR.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                if (isChecked == true) {//ON
+//                    //buttonLL.setEnabled(false);//LL비활성화
+//                    //buttonLL.setClickable(false);//LL클릭 불가능
+//                    if (buttonLL.isChecked()) {
+//                        buttonLL.setChecked(false);
+//                        buttonLL.setBackgroundDrawable(
+//                                getResources().getDrawable(R.drawable.image_light_off)
+//                        );
+//                        LL = false;
+//                    }
+//                    SR = true;
+//                    Toast.makeText(MainActivity.this, "SR클릭-ON", Toast.LENGTH_SHORT).show();
+//                    //이미지를 교체
+//                    buttonSR.setBackgroundDrawable(
+//                            getResources().getDrawable(R.drawable.image_super_on)
+//                    );
+//                } else {//OFF
+//                    //buttonLL.setEnabled(true);//LL활성화
+//                    //buttonLL.setClickable(true);//LL클릭 가능
+//                    SR = false;
+//                    Toast.makeText(MainActivity.this, "SR클릭-OFF", Toast.LENGTH_SHORT).show();
+//                    buttonSR.setBackgroundDrawable(
+//                            getResources().getDrawable(R.drawable.image_super_off)
+//                    );
+//                }
+//
+//            }
+//        });
+//
+//        buttonLL.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (buttonLL.isChecked()) {
+//                    //buttonSR.setEnabled(false); //SR비활성화
+//                    //buttonSR.setClickable(false); //SR클릭 불가능
+//                    if (buttonSR.isChecked()) {
+//                        buttonSR.setChecked(false);
+//                        buttonSR.setBackgroundDrawable(
+//                                getResources().getDrawable(R.drawable.image_super_off)
+//                        );
+//                        SR = false;
+//                    }
+//                    LL = true;
+//                    Toast.makeText(MainActivity.this, "LL클릭-ON", Toast.LENGTH_SHORT).show();
+//                    buttonLL.setBackgroundDrawable(
+//                            getResources().getDrawable(R.drawable.image_light_on)
+//                    );
+//                } else {
+//                    //buttonSR.setEnabled(true);//SR활성화
+//                    //buttonSR.setClickable(true);//SR클릭 가능
+//                    LL = false;
+//                    Toast.makeText(MainActivity.this, "LL클릭-OFF", Toast.LENGTH_SHORT).show();
+//                    buttonLL.setBackgroundDrawable(
+//                            getResources().getDrawable(R.drawable.image_light_off)
+//                    );
+//                }
+//            }
+//        });
+//
+//        //Share버튼 누르고(=true) 사진 찍으면 위치정보 FireBase로 전송하도록 할 예정
+//        buttonShare.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                //버튼을 누르면 true
+//                //버튼을 다시 눌러서 끄면 SHARE=false가 되도록 구현하기
+//                if (buttonShare.isChecked()) {
+//                    SHARE = true;
+//                    Toast.makeText(MainActivity.this, "SHARE클릭-ON", Toast.LENGTH_SHORT).show();
+//                    buttonShare.setBackgroundDrawable(
+//                            getResources().getDrawable(R.drawable.image_flickr_on)
+//                    );
+//
+//                } else {
+//                    SHARE = false;
+//                    Toast.makeText(MainActivity.this, "SHARE클릭-OFF", Toast.LENGTH_SHORT).show();
+//                    buttonShare.setBackgroundDrawable(
+//                            getResources().getDrawable(R.drawable.image_flickr_off)
+//                    );
+//
+//                }
+//
+//            }
+//        });
+//
+//
+//        //MyPlace버튼 누르면 구글맵 실행
+//        buttonMyPlace.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+////                Toast.makeText(getApplicationContext(), "버튼 클릭 성공", Toast.LENGTH_SHORT).show();
+//                Intent intent = new Intent(getApplicationContext(), GoogleMapActivity.class);
+//                startActivity(intent);  //페이지전환
+////                Toast.makeText(getApplicationContext(), "페이지전환 성공", Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//
+//        buttonHotPlace.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//            }
+//        });
+//
+//
+//
+//
+///*
+////수동으로 포커스 조절
+//        //autofocus 참고 https://argc.tistory.com/244
+//        ConstraintLayout layoutBackground = findViewById(R.id.background);
+//        layoutBackground.setOnClickListener(new View.OnClickListener(){
+//
+//            @Override
+//            public void onClick(View v) {
+//                take_photo.setEnabled(false);
+//                camera.autoFocus(myAutoFocusCallback);
+//            }});
+//*/
+//
+//    }
+//
+///*
+//        Camera.AutoFocusCallback myAutoFocusCallback = new Camera.AutoFocusCallback() {
+//            @Override
+//            public void onAutoFocus(boolean success, Camera camera) {
+//                take_photo.setEnabled(true);
+//            }};
+//
+//*/
+//
+//
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//
+//        mSensorManager.registerListener(deviceOrientation.getEventListener(), mAccelerometer, SensorManager.SENSOR_DELAY_UI);
+//        mSensorManager.registerListener(deviceOrientation.getEventListener(), mMagnetometer, SensorManager.SENSOR_DELAY_UI);
+//
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//
+//        mSensorManager.unregisterListener(deviceOrientation.getEventListener());
+//    }
+//
+//
+//    @Override
+//    public void surfaceCreated(SurfaceHolder holder) {
+//        if (!openCamera(CameraInfo.CAMERA_FACING_BACK)) {
+//            alertCameraDialog();
+//        }
+//
+//        //set camera to continually auto-focus
+//        //오토포커스 참고 http://edu.popcornware.net/pop%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9C-%EC%B9%B4%EB%A9%94%EB%9D%BC-%EC%98%A4%ED%86%A0%ED%8F%AC%EC%BB%A4%EC%8A%A4-%EC%84%A4%EC%A0%95/
+//        Camera.Parameters params = camera.getParameters();
+//
+//        params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+//        camera.setParameters(params);
+//
+//        try {
+//            camera.setPreviewDisplay(holder);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        Log.e("G", "001 surfaceCreated onCreadCamera");
+//
+//
+//    }
+//
+//    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
+//        final double ASPECT_TOLERANCE = 0.05;
+//        double targetRatio = (double) w / h;
+//
+//        if (sizes == null) return null;
+//        Camera.Size optimalSize = null;
+//        double minDiff = Double.MAX_VALUE;
+//        int targetHeight = h;
+//
+//        // Find size
+//        for (Camera.Size size : sizes) {
+//            double ratio = (double) size.width / size.height;
+//            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+//            if (Math.abs(size.height - targetHeight) < minDiff) {
+//                optimalSize = size;
+//                minDiff = Math.abs(size.height - targetHeight);
+//                break;
+//            }
+//        }
+//
+//        if (optimalSize == null) {
+//            minDiff = Double.MAX_VALUE;
+//            for (Camera.Size size : sizes) {
+//                if (Math.abs(size.height - targetHeight) < minDiff) {
+//                    optimalSize = size;
+//                    minDiff = Math.abs(size.height - targetHeight);
+//                }
+//            }
+//        }
+//        return optimalSize;
+//    }
+//
+//
+//    private boolean openCamera(int id) {
+//        boolean result = false;
+//        cameraId = id;
+//        releaseCamera();
+//        try {
+//            camera = Camera.open(cameraId);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        if (camera != null) {
+//            try {
+//                setUpCamera(camera);
+//                camera.setErrorCallback(new ErrorCallback() {
+//
+//                    @Override
+//                    public void onError(int error, Camera camera) {
+//
+//                    }
+//                });
+//                camera.setPreviewDisplay(surfaceHolder);
+//                camera.startPreview();
+//
+//                Camera.Parameters params = camera.getParameters();
+//                List<Camera.Size> pictureSizeList = params.getSupportedPictureSizes();
+//                List<Camera.Size> previewSizeList = params.getSupportedPreviewSizes();
+////                for(Camera.Size size : pictureSizeList){
+////                    Log.d("##PictureSize##", "width: "+size.width+ "height :"+size.height);
+////                } //지원하는 사진의 크기
+//                Camera.Size size = getOptimalPreviewSize(pictureSizeList, 4, 3);
+//                params.setPictureSize(size.width, size.height);
+//                size = getOptimalPreviewSize(previewSizeList, 16, 9);
+//                params.setPreviewSize(size.width, size.height);
+//
+//                params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+//                camera.setParameters(params);
+//
+//                Log.d("Preview Size", " " + camera.getParameters().getPreviewSize().width + camera.getParameters().getPreviewSize().height);
+//                Log.d("Picture Size", " " + camera.getParameters().getPictureSize().width + camera.getParameters().getPictureSize().height);
+//
+//                result = true;
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                result = false;
+//                releaseCamera();
+//            }
+//        }
+//        return result;
+//    }
+//
+//    private void setUpCamera(Camera c) {
+//        Camera.CameraInfo info = new Camera.CameraInfo();
+//        Camera.getCameraInfo(cameraId, info);
+//        rotation = getWindowManager().getDefaultDisplay().getRotation();
+//        int degree = 0;
+//        switch (rotation) {
+//            case Surface.ROTATION_0:
+//                degree = 0;
+//                break;
+//            case Surface.ROTATION_90:
+//                degree = 90;
+//                break;
+//            case Surface.ROTATION_180:
+//                degree = 180;
+//                break;
+//            case Surface.ROTATION_270:
+//                degree = 270;
+//                break;
+//
+//            default:
+//                break;
+//        }
+//
+//        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+//            // frontFacing
+//            rotation = (info.orientation + degree) % 330;
+//            rotation = (360 - rotation) % 360;
+//            Log.d("rotation", " " + rotation);
+//        } else {
+//            // Back-facing
+//            rotation = (info.orientation - degree + 360) % 360;
+//        }
+//        c.setDisplayOrientation(rotation);
+//        Camera.Parameters params = c.getParameters();
+//
+//        showFlashButton(params);
+//
+//        List<String> focusModes = params.getSupportedFlashModes();
+//        if (focusModes != null) {
+//            if (focusModes
+//                    .contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+//                params.setFlashMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+//            }
+//        }
+//
+//        params.setRotation(rotation);
+//        c.setParameters(params);
+//    }
+//
+//    private void showFlashButton(Parameters params) {
+//        boolean showFlash = (getPackageManager().hasSystemFeature(
+//                PackageManager.FEATURE_CAMERA_FLASH) && params.getFlashMode() != null)
+//                && params.getSupportedFlashModes() != null
+//                && params.getSupportedFocusModes().size() > 1;
+//        flashButton.setVisibility(showFlash ? View.VISIBLE
+//                : View.INVISIBLE);
+//
+//    }
+//
+//    private void releaseCamera() {
+//        try {
+//            if (camera != null) {
+//                camera.setPreviewCallback(null);
+//                camera.setErrorCallback(null);
+//                camera.stopPreview();
+//                camera.release();
+//                camera = null;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            Log.e("error", e.toString());
+//            camera = null;
+//        }
+//    }
+//
+//    @Override
+//    public void surfaceChanged(SurfaceHolder holder, int format, int width,
+//                               int height) {
+//
+//    }
+//
+//    @Override
+//    public void surfaceDestroyed(SurfaceHolder holder) {
+//
+//    }
+//
+//    @Override
+//    public void onClick(View v) {
+//        switch (v.getId()) {
+//            case R.id.flashButton:
+//                flashOnButton();
+//                break;
+//            case R.id.cameraChangeButton:
+//                flipCamera();
+//                break;
+//            case R.id.take_photo:
+//                if (SHARE) {
+//                    //위치정보가져오기
+//                    gpsTracker = new GpsTracker(MainActivity.this);
+//                    latitude = gpsTracker.getLatitude();
+//                    longitude = gpsTracker.getLongitude();
+//                    Toast.makeText(MainActivity.this,
+//                            "현재위치 \n위도 " + latitude + "\n경도 " + longitude, Toast.LENGTH_LONG).show();
+//                    getCurrentData(latitude,longitude);//takeImage()보다 먼저 오기.
+//                    takeImage(); //사진 저장
+//                } else {
+//                    //아무일도 일어나지 않고 사진만 저장
+//                    takeImage();
+//                }
+//
+////                takeImage();
+//
+//                break;
+//
+//            default:
+//                break;
+//        }
+//
+//    }
+//
+//
+//    private void takeImage() {
+//        camera.takePicture(null, null, new PictureCallback() {
+//            private File imageFile;
+//
+//            @Override
+//            public void onPictureTaken(byte[] data, Camera camera) {
+//                try {
+//                    // convert byte array into bitmap
+//                    Bitmap loadedImage = null;
+//                    Bitmap rotatedBitmap = null;
+//                    loadedImage = BitmapFactory.decodeByteArray(data, 0,
+//                            data.length);
+//
+//
+//                    // rotate Image
+//                    Matrix rotateMatrix = new Matrix();
+//                    rotateMatrix.postRotate(rotation);
+//                    rotatedBitmap = Bitmap.createBitmap(loadedImage, 0, 0,
+//                            loadedImage.getWidth(), loadedImage.getHeight(),
+//                            rotateMatrix, false);
+//                    String state = Environment.getExternalStorageState();
+//                    File folder = null;
+//                    if (state.contains(Environment.MEDIA_MOUNTED)) {
+//                        folder = new File(Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES) + "/testtest");
+//
+//                    } else {
+//                        folder = new File(Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES) + "/testtest");
+//
+//                    }
+//
+//
+//                    boolean success = true;
+//                    if (!folder.exists()) {
+//                        success = folder.mkdirs();
+//                    }
+//
+//                    if (success) {
+//                        java.util.Date date = new java.util.Date();
+//                        imageFile = new File(folder.getAbsolutePath()
+//                                + File.separator
+//                                + new Timestamp(date.getTime()).toString()
+//                                + "Image.jpg");
+//
+//
+//                        mDeviceRotation = ORIENTATIONS.get(deviceOrientation.getOrientation());
+//                        new SaveImageTask().execute(loadedImage);
+//
+//                    } else {
+//                        Toast.makeText(getBaseContext(), "Image Not saved",
+//                                Toast.LENGTH_SHORT).show();
+//
+//                        return;
+//                    }
+//
+//
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//
+//                camera.startPreview();
+//
+//            }
+//        });
+//    }
+//
+//    private void flipCamera() {
+//        int id = (cameraId == CameraInfo.CAMERA_FACING_BACK ? CameraInfo.CAMERA_FACING_FRONT
+//                : CameraInfo.CAMERA_FACING_BACK);
+//        if (!openCamera(id)) {
+//            alertCameraDialog();
+//        }
+//    }
+//
+//    private void alertCameraDialog() {
+//        AlertDialog.Builder dialog = createAlert(MainActivity.this,
+//                "Camera info", "error to open camera");
+//        dialog.setNegativeButton("OK", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                dialog.cancel();
+//
+//            }
+//        });
+//
+//        dialog.show();
+//    }
+//
+//    private Builder createAlert(Context context, String title, String message) {
+//
+//        AlertDialog.Builder dialog = new AlertDialog.Builder(
+//                new ContextThemeWrapper(context,
+//                        android.R.style.Theme_Holo_Light_Dialog));
+//        dialog.setIcon(R.drawable.ic_launcher_background);
+//        if (title != null)
+//            dialog.setTitle(title);
+//        else
+//            dialog.setTitle("Information");
+//        dialog.setMessage(message);
+//        dialog.setCancelable(false);
+//        return dialog;
+//
+//    }
+//
+//    int flashInt = 0; //flash 버튼 이미지를 바꾸기 위한 변수
+//
+//    private void flashOnButton() {
+//        if (camera != null) {
+//            try {
+//                Parameters param = camera.getParameters();
+//                param.setFlashMode(!flashmode ? Parameters.FLASH_MODE_TORCH
+//                        : Parameters.FLASH_MODE_OFF);
+//                camera.setParameters(param);
+//                flashmode = !flashmode;
+//                flashInt = 1 - flashInt;
+//                if (flashInt == 1) { //flash를 켰을 때 이미지
+//                    flashButton.setImageResource(R.drawable.image_flash_on);
+//                } else {//flash를 껐을 때 이미지
+//                    flashButton.setImageResource(R.drawable.image_flash_off);
+//                }
+//
+//
+//            } catch (Exception e) {
+//                // TODO: handle exception
+//            }
+//
+//        }
+//    }
+//
+//
+//    public final String insertImage(ContentResolver cr,
+//                                    Bitmap source,
+//                                    String title,
+//                                    String description) {
+//
+//        ContentValues values = new ContentValues();
+//        values.put(MediaStore.Images.Media.TITLE, title);
+//        values.put(MediaStore.Images.Media.DISPLAY_NAME, title);
+//        values.put(MediaStore.Images.Media.DESCRIPTION, description);
+//        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+//        // Add the date meta data to ensure the image is added at the front of the gallery
+//        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis());
+//        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+//
+//        Uri url = null;
+//        String stringUrl = null;    /* value to be returned */
+//
+//        try {
+//            url = cr.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+//
+//            if (source != null) {
+//                OutputStream imageOut = cr.openOutputStream(url);
+//                try {
+//                    source.compress(Bitmap.CompressFormat.JPEG, 50, imageOut);
+//                } finally {
+//                    imageOut.close();
+//                }
+//
+//            } else {
+//                cr.delete(url, null, null);
+//                url = null;
+//            }
+//        } catch (Exception e) {
+//            if (url != null) {
+//                cr.delete(url, null, null);
+//                url = null;
+//            }
+//        }
+//
+//        if (url != null) {
+//            stringUrl = url.toString();
+//        }
+//
+//        if (SHARE) {//파이어베이스 storage에 저장됨
+//            FirebaseStorage storage = FirebaseStorage.getInstance();//스토리지 인스턴스 생성
+//            StorageReference storageRef = storage.getReference();//스토리지 참조
+//            java.util.Date date = new java.util.Date();
+//            String filename = "picture" + new Timestamp(date.getTime()).toString() + ".jpg";
+//            Uri file = url;
+//            StorageReference riversRef = storageRef.child("img/" + filename);
+//            UploadTask uploadTask = riversRef.putFile(file);
+//
+//
+//            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+//                @Override
+//                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+//                    if (!task.isSuccessful()) {
+//                        throw task.getException();
+//                    }
+//
+//                    // Continue with the task to get the download URL
+//                    return riversRef.getDownloadUrl();
+//                }
+//            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+//                @Override
+//                public void onComplete(@NonNull Task<Uri> task) {
+//                    if (task.isSuccessful()) {
+//
+//                        /*파이어베이스에 데이터베이스 업로드. 날씨정보는 다른 메소드에서 DTO에 set*/
+//                        Uri downloadUrl = task.getResult();
+////                        DataDTO dataDTO = new DataDTO();
+//                        dataDTO.setPictureUri(downloadUrl.toString());
+//                        dataDTO.setLatitude(latitude);//위도경도는 OnClick메소드에서 측정
+//                        dataDTO.setLongitude(longitude);
+//
+//                        //users2 라는 테이블에 json 형태로 담긴다.
+//                        //database.getReference().child("users2").setValue(dataDTO);
+//                        //  .push()  :  데이터가 쌓인다.
+//                        mDatabase.getReference().child("users2").push().setValue(dataDTO);
+//
+//                        Toast.makeText(MainActivity.this, "FireBase업로드 성공", Toast.LENGTH_SHORT).show();
+//
+////                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+////                        startActivity(intent);
+//
+//                    } else {
+//                        Toast.makeText(MainActivity.this, "FireBase업로드 실패..", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//            });
+//
+//
+//        }
+//
+//
+//        return stringUrl;
+//    }
+//
+//
+//    private class SaveImageTask extends AsyncTask<Bitmap, Void, Void> {
+//
+//        @Override
+//        protected void onPostExecute(Void aVoid) {
+//            super.onPostExecute(aVoid);
+//            Toast.makeText(com.example.cameraexample6.MainActivity.this, "사진을 저장하였습니다.", Toast.LENGTH_SHORT).show();
+//        }
+//
+//        @Override
+//        protected Void doInBackground(Bitmap... data) {
+//
+//            Bitmap bitmap = null;
+//            try {
+//                bitmap = data[0];
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//
+//            int tempRotate = mDeviceRotation;
+//            int tempCameraId = cameraId;
+//
+//            AI ai = new AI(MainActivity.this, bitmap);  // AI 객체 생성
+//
+//            if (SR) {
+//                bitmap = ai.Super_Resolution();             // 초해상도 작업 진행
+//            } else if (LL) {
+//                bitmap = ai.Low_Light();                    // 저조도 작업 진행
+//            } else if (SHARE) {
+//
+//
+//            }
+//
+//            try {
+//                bitmap = getRotatedBitmap(bitmap, tempRotate, tempCameraId);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//
+//
+//            insertImage(getContentResolver(), bitmap, "" + System.currentTimeMillis(), "");
+//
+//
+//            return null;
+//        }
+//
+//    }
+//
+//    public Bitmap getRotatedBitmap(Bitmap bitmap, int degrees, int cameraInfo) throws Exception {
+//        if (bitmap == null) return null;
+//        if (degrees == 0) return bitmap;
+//
+//        Matrix m = new Matrix();
+//
+//        if (cameraId == CameraInfo.CAMERA_FACING_BACK) {
+//            m.setRotate(degrees, (float) bitmap.getWidth() / 2, (float) bitmap.getHeight() / 2);
+//        } else {
+//            m.setRotate((360 - degrees) % 360, (float) bitmap.getWidth() / 2, (float) bitmap.getHeight() / 2);
+//        }
+//
+//        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
+//    }
+//
+//
+////    GPS 관련 메소드들
+//
+//    /*
+//     * ActivityCompat.requestPermissions를 사용한 퍼미션 요청의 결과를 리턴받는 메소드입니다.
+//     */
+//    @Override
+//    public void onRequestPermissionsResult(int permsRequestCode,
+//                                           @NonNull String[] permissions,
+//                                           @NonNull int[] grandResults) {
+//
+//        super.onRequestPermissionsResult(permsRequestCode, permissions, grandResults);
+//        if (permsRequestCode == PERMISSIONS_REQUEST_CODE && grandResults.length == REQUIRED_PERMISSIONS.length) {
+//
+//            // 요청 코드가 PERMISSIONS_REQUEST_CODE 이고, 요청한 퍼미션 개수만큼 수신되었다면
+//
+//            boolean check_result = true;
+//
+//
+//            // 모든 퍼미션을 허용했는지 체크합니다.
+//
+//            for (int result : grandResults) {
+//                if (result != PackageManager.PERMISSION_GRANTED) {
+//                    check_result = false;
+//                    break;
+//                }
+//            }
+//
+//
+//            if (check_result) {
+//
+//                //위치 값을 가져올 수 있음
+//                ;
+//            } else {
+//                // 거부한 퍼미션이 있다면 앱을 사용할 수 없는 이유를 설명해주고 앱을 종료합니다.2 가지 경우가 있습니다.
+//
+//                if (ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[0])
+//                        || ActivityCompat.shouldShowRequestPermissionRationale(this, REQUIRED_PERMISSIONS[1])) {
+//
+//                    Toast.makeText(MainActivity.this, "퍼미션이 거부되었습니다. 앱을 다시 실행하여 퍼미션을 허용해주세요.", Toast.LENGTH_LONG).show();
+//                    finish();
+//
+//
+//                } else {
+//
+//                    Toast.makeText(MainActivity.this, "퍼미션이 거부되었습니다. 설정(앱 정보)에서 퍼미션을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
+//
+//                }
+//            }
+//
+//        }
+//    }
+//
+//    void checkRunTimePermission() {//필수
+//
+//        //런타임 퍼미션 처리
+//        // 1. 위치 퍼미션을 가지고 있는지 체크합니다.
+//        int hasFineLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this,
+//                Manifest.permission.ACCESS_FINE_LOCATION);
+//        int hasCoarseLocationPermission = ContextCompat.checkSelfPermission(MainActivity.this,
+//                Manifest.permission.ACCESS_COARSE_LOCATION);
+//
+//
+//        if (hasFineLocationPermission == PackageManager.PERMISSION_GRANTED &&
+//                hasCoarseLocationPermission == PackageManager.PERMISSION_GRANTED) {
+//
+//            // 2. 이미 퍼미션을 가지고 있다면
+//            // ( 안드로이드 6.0 이하 버전은 런타임 퍼미션이 필요없기 때문에 이미 허용된 걸로 인식합니다.)
+//
+//
+//            // 3.  위치 값을 가져올 수 있음
+//
+//
+//        } else {  //2. 퍼미션 요청을 허용한 적이 없다면 퍼미션 요청이 필요합니다. 2가지 경우(3-1, 4-1)가 있습니다.
+//
+//            // 3-1. 사용자가 퍼미션 거부를 한 적이 있는 경우에는
+//            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, REQUIRED_PERMISSIONS[0])) {
+//
+//                // 3-2. 요청을 진행하기 전에 사용자가에게 퍼미션이 필요한 이유를 설명해줄 필요가 있습니다.
+//                Toast.makeText(MainActivity.this, "이 앱을 실행하려면 위치 접근 권한이 필요합니다.", Toast.LENGTH_LONG).show();
+//                // 3-3. 사용자게에 퍼미션 요청을 합니다. 요청 결과는 onRequestPermissionResult에서 수신됩니다.
+//                ActivityCompat.requestPermissions(MainActivity.this, REQUIRED_PERMISSIONS,
+//                        PERMISSIONS_REQUEST_CODE);
+//
+//
+//            } else {
+//                // 4-1. 사용자가 퍼미션 거부를 한 적이 없는 경우에는 퍼미션 요청을 바로 합니다.
+//                // 요청 결과는 onRequestPermissionResult에서 수신됩니다.
+//                ActivityCompat.requestPermissions(MainActivity.this, REQUIRED_PERMISSIONS,
+//                        PERMISSIONS_REQUEST_CODE);
+//            }
+//
+//        }
+//
+//    }
+//
+//
+//    //여기부터는 GPS 활성화를 위한 메소드들
+//    private void showDialogForLocationServiceSetting() {
+//
+//        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this);
+//        builder.setTitle("위치 서비스 비활성화");
+//        builder.setMessage("앱을 사용하기 위해서는 위치 서비스가 필요합니다.\n"
+//                + "위치 설정을 수정하실래요?");
+//        builder.setCancelable(true);
+//        builder.setPositiveButton("설정", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int id) {
+//                Intent callGPSSettingIntent
+//                        = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+//                startActivityForResult(callGPSSettingIntent, GPS_ENABLE_REQUEST_CODE);
+//            }
+//        });
+//        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int id) {
+//                dialog.cancel();
+//            }
+//        });
+//        builder.create().show();
+//    }
+//
+//
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//
+//        switch (requestCode) {
+//
+//            case GPS_ENABLE_REQUEST_CODE:
+//
+//                //사용자가 GPS 활성 시켰는지 검사
+//                if (checkLocationServicesStatus()) {
+//                    if (checkLocationServicesStatus()) {
+//
+//                        Log.d("@@@", "onActivityResult : GPS 활성화 되있음");
+//                        checkRunTimePermission();
+//                        return;
+//                    }
+//                }
+//
+//                break;
+//        }
+//    }
+//
+//    public boolean checkLocationServicesStatus() {//위치서비스 켜져있는지 체크
+//        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+//
+//        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+//                || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+//    }
+//
+//
+//
+//    void getCurrentData(double latitude, double longitude){
+//        retrofit2.Retrofit retrofit = new retrofit2.Retrofit.Builder()
+//                .baseUrl(BaseUrl)
+//                .addConverterFactory(GsonConverterFactory.create())//Gson 사용
+//                .build();
+//
+//        WeatherService service = retrofit.create(WeatherService.class); //레트로핏 생성
+//        Call<WeatherResponse> call = service.getCurrentWeatherData(latitude, longitude, AppId,UNITS);
+//
+//        call.enqueue(new retrofit2.Callback<WeatherResponse>() { //비동기처리
+//            @Override
+//            public void onResponse(@NonNull Call<WeatherResponse> call, @NonNull Response<WeatherResponse> response) {
+//                if (response.code() == 200) { //통신 성공시 실행
+//                    WeatherResponse weatherResponse = response.body();
+//                    assert weatherResponse != null;
+//
+//                    double temp = weatherResponse.main.temp;
+//                    String weather = weatherResponse.weather.get(0).main;
+//
+//                    /*DTO에 온도, 날씨 정보 set*/
+//                    dataDTO.setTemperature(temp);
+//                    dataDTO.setWeather(weather);
+//
+//
+//                }
+//            }
+//
+//
+//            @Override
+//            public void onFailure(@NonNull Call<WeatherResponse> call, @NonNull Throwable t) {
+//                Log.d("레트로핏 통신 실패",t.getMessage());
+//            }
+//        });
+//
+//
+//    }
+//
+//
+//}
+
+
 package com.example.cameraexample6;
 //참고
 //https://www.c-sharpcorner.com/UploadFile/9e8439/how-to-make-a-custom-camera-ion-android/
 
-import android.Manifest;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.graphics.Point;
-import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
-import android.hardware.Camera.ErrorCallback;
-import android.hardware.Camera.Parameters;
-import android.hardware.Camera.PictureCallback;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
-import android.location.LocationManager;
-import android.media.ExifInterface;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Log;
-import android.util.SparseIntArray;
-import android.view.ContextThemeWrapper;
-import android.view.Display;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceHolder.Callback;
-import android.view.SurfaceView;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.WindowManager;
-import android.widget.CompoundButton;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.SeekBar;
-import android.widget.Toast;
-import android.widget.ToggleButton;
+        import android.Manifest;
+        import android.app.Activity;
+        import android.app.AlertDialog;
+        import android.app.AlertDialog.Builder;
+        import android.content.ContentResolver;
+        import android.content.ContentValues;
+        import android.content.Context;
+        import android.content.DialogInterface;
+        import android.content.Intent;
+        import android.content.pm.PackageManager;
+        import android.graphics.Bitmap;
+        import android.graphics.BitmapFactory;
+        import android.graphics.Matrix;
+        import android.graphics.Point;
+        import android.hardware.Camera;
+        import android.hardware.Camera.CameraInfo;
+        import android.hardware.Camera.ErrorCallback;
+        import android.hardware.Camera.Parameters;
+        import android.hardware.Camera.PictureCallback;
+        import android.hardware.Sensor;
+        import android.hardware.SensorManager;
+        import android.location.LocationManager;
+        import android.media.ExifInterface;
+        import android.net.Uri;
+        import android.os.AsyncTask;
+        import android.os.Bundle;
+        import android.os.Environment;
+        import android.provider.MediaStore;
+        import android.util.Log;
+        import android.util.SparseIntArray;
+        import android.view.ContextThemeWrapper;
+        import android.view.Display;
+        import android.view.Surface;
+        import android.view.SurfaceHolder;
+        import android.view.SurfaceHolder.Callback;
+        import android.view.SurfaceView;
+        import android.view.View;
+        import android.view.View.OnClickListener;
+        import android.view.WindowManager;
+        import android.widget.CompoundButton;
+        import android.widget.ImageButton;
+        import android.widget.ImageView;
+        import android.widget.SeekBar;
+        import android.widget.Toast;
+        import android.widget.ToggleButton;
 
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+        import androidx.annotation.NonNull;
+        import androidx.core.app.ActivityCompat;
+        import androidx.core.content.ContextCompat;
 
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
+        import com.google.android.gms.tasks.Continuation;
+        import com.google.android.gms.tasks.OnCompleteListener;
+        import com.google.android.gms.tasks.Task;
+        import com.google.firebase.database.DatabaseReference;
+        import com.google.firebase.database.FirebaseDatabase;
+        import com.google.firebase.storage.FirebaseStorage;
+        import com.google.firebase.storage.StorageReference;
+        import com.google.firebase.storage.UploadTask;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.sql.Timestamp;
-import java.util.List;
+        import java.io.File;
+        import java.io.IOException;
+        import java.io.OutputStream;
+        import java.sql.Timestamp;
+        import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Response;
-import retrofit2.converter.gson.GsonConverterFactory;
+        import retrofit2.Call;
+        import retrofit2.Response;
+        import retrofit2.converter.gson.GsonConverterFactory;
 
-import static android.os.Environment.DIRECTORY_PICTURES;
+        import static android.os.Environment.DIRECTORY_PICTURES;
 //import static android.provider.MediaStore.Images.Media.insertImage;
 
 
@@ -896,6 +2031,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
             int tempRotate = mDeviceRotation;
             int tempCameraId = cameraId;
+            bitmap = getZoomedImage(bitmap);
 
             AI ai = new AI(MainActivity.this, bitmap);  // AI 객체 생성
 
@@ -936,6 +2072,22 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         }
 
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
+    }
+
+    public Bitmap getZoomedImage(Bitmap bitmap){
+        int[] zoom = zoomLayout.getZoom();
+        float scale = zoomLayout.getScale();
+        float preToPicRatio = (float)bitmap.getWidth()/lp.height;
+        Log.d("layout status", "" + bitmap.getWidth() + ", " + lp.height + ", " + (float)bitmap.getWidth()/lp.height);
+        int topDownMargin = (int)((bitmap.getHeight() - lp.width*preToPicRatio) / 2);
+
+        bitmap = Bitmap.createBitmap(bitmap,
+                (int)(zoom[1]*(-1)*preToPicRatio),
+                (int)(bitmap.getHeight() - topDownMargin - (zoom[0]*(-1) + lp.width/scale)*preToPicRatio - topDownMargin/scale),
+                (int)(lp.height/scale*preToPicRatio),
+                (int)((lp.width/scale*preToPicRatio) + topDownMargin/scale*2));
+
+        return bitmap;
     }
 
 
@@ -1095,43 +2247,25 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
     void getCurrentData(double latitude, double longitude){
         retrofit2.Retrofit retrofit = new retrofit2.Retrofit.Builder()
                 .baseUrl(BaseUrl)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())//Gson 사용
                 .build();
 
-        WeatherService service = retrofit.create(WeatherService.class);
+        WeatherService service = retrofit.create(WeatherService.class); //레트로핏 생성
         Call<WeatherResponse> call = service.getCurrentWeatherData(latitude, longitude, AppId,UNITS);
 
-        call.enqueue(new retrofit2.Callback<WeatherResponse>() {
+        call.enqueue(new retrofit2.Callback<WeatherResponse>() { //비동기처리
             @Override
             public void onResponse(@NonNull Call<WeatherResponse> call, @NonNull Response<WeatherResponse> response) {
-                if (response.code() == 200) {
+                if (response.code() == 200) { //통신 성공시 실행
                     WeatherResponse weatherResponse = response.body();
                     assert weatherResponse != null;
-                    
-                    /*파이어베이스에 온도, 날씨 업로드*/
+
                     double temp = weatherResponse.main.temp;
                     String weather = weatherResponse.weather.get(0).main;
 
+                    /*DTO에 온도, 날씨 정보 set*/
                     dataDTO.setTemperature(temp);
                     dataDTO.setWeather(weather);
-
-//                    String stringBuilder =
-//                            "Country: " +
-//                            weatherResponse.sys.country +
-//                            "\n" +
-//                            "Temperature: " +
-//                            weatherResponse.main.temp +
-//                            "\n" +
-//                            "Temperature(Min): " +
-//                            weatherResponse.main.temp_min +
-//                            "\n" +
-//                            "Temperature(Max): " +
-//                            weatherResponse.main.temp_max +
-//                            "\n" +
-//                            "Weather: " +
-//                            weatherResponse.weather.get(0).main;
-//
-//                    Log.d("레트로핏",stringBuilder);
 
 
                 }
@@ -1140,7 +2274,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
             @Override
             public void onFailure(@NonNull Call<WeatherResponse> call, @NonNull Throwable t) {
-                Log.d("레트로핏2",t.getMessage());
+                Log.d("레트로핏 통신 실패",t.getMessage());
             }
         });
 

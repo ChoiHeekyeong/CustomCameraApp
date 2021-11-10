@@ -1,12 +1,12 @@
 package com.example.cameraexample6;
 
-import android.content.Context;
-import android.util.AttributeSet;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
-import android.view.View;
-import android.widget.FrameLayout;
+        import android.content.Context;
+        import android.util.AttributeSet;
+        import android.util.Log;
+        import android.view.MotionEvent;
+        import android.view.ScaleGestureDetector;
+        import android.view.View;
+        import android.widget.FrameLayout;
 
 public class ZoomLayout extends FrameLayout implements ScaleGestureDetector.OnScaleGestureListener {
 
@@ -18,7 +18,7 @@ public class ZoomLayout extends FrameLayout implements ScaleGestureDetector.OnSc
 
     private static final String TAG = "ZoomLayout";
     private static final float MIN_ZOOM = 1.0f;
-    private static final float MAX_ZOOM = 4.0f;
+    private static final float MAX_ZOOM = 8.0f;
 
     private Mode mode = Mode.NONE;
     private float scale = 1.0f;
@@ -149,4 +149,13 @@ public class ZoomLayout extends FrameLayout implements ScaleGestureDetector.OnSc
     private View child() {
         return getChildAt(0);
     }
+
+    public int[] getZoom() {
+        return new int[]{(int)(dx/scale), (int)(dy/scale)};
+    }
+
+    public float getScale() {
+        return scale;
+    }
 }
+
