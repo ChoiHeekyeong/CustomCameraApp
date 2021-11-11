@@ -33,9 +33,11 @@
         android:requestLegacyExternalStorage="true"
         >
 
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="app.BuildConfig.MAPS_API_KEY"
+
             />
 
 
