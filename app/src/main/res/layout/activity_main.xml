@@ -132,43 +132,21 @@
                 android:scaleType="centerCrop"
                 android:layout_marginLeft="20dp" />
 
-            <ImageButton
-                android:id="@+id/hot_btn"
-                android:layout_width="50dp"
-                android:layout_height="30dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginBottom="20dp"
-                android:background="@drawable/image_hot"
-                android:padding="0sp"
-                android:scaleType="centerCrop"
-                android:textOff=""
-                android:textOn=""
-                app:layout_constraintBottom_toTopOf="@+id/cameraChangeButton"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintVertical_bias="0.0"
-                app:layout_constraintVertical_chainStyle="spread" />
 
             <ImageButton
                 android:id="@+id/my_btn"
-                android:layout_width="50dp"
-                android:layout_height="30dp"
-                android:layout_marginLeft="15dp"
-                android:layout_marginTop="0dp"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
                 android:layout_marginBottom="20dp"
-                android:textOff=""
-                android:textOn=""
-                android:background="@drawable/image_my"
+                android:background="@drawable/location"
                 android:padding="0sp"
                 android:scaleType="centerCrop"
+                android:textOff=""
+                android:textOn=""
                 app:layout_constraintBottom_toTopOf="@+id/cameraChangeButton"
-                app:layout_constraintStart_toEndOf="@+id/hot_btn"
-                app:layout_constraintVertical_bias="0.0"
+                app:layout_constraintEnd_toStartOf="@+id/cameraChangeButton"
+                app:layout_constraintStart_toEndOf="@+id/flashButton"
                 app:layout_constraintVertical_chainStyle="spread" />
-
-
-
-
 
             <ImageView
                 android:id="@+id/take_photo"
