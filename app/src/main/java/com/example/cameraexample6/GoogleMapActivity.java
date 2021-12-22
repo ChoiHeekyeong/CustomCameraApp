@@ -128,7 +128,7 @@ public class GoogleMapActivity extends FragmentActivity implements OnMapReadyCal
                 clickMaker(clusterManager); //마커를 클릭했을 때 모달창이 나오게 함
 
 
-//                Log.d("총갯수?@@@", "" + markerMap.size());
+
             }
 
 

@@ -1220,9 +1220,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
     private Sensor mMagnetometer;
     private SensorManager mSensorManager;
 
-    //private Button flipCamera;
-    // private Button flashCameraButton;
-    //private Button captureImage;
 
     private ImageView take_photo;
     private ImageView flashButton;
@@ -1306,7 +1303,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
 
         //FireBase에 이미지 넣기 TEST
         // Authentication, Database, Storage 초기화
-//        mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance();
         mStorage = FirebaseStorage.getInstance();
 
@@ -1403,7 +1399,7 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
         ToggleButton buttonLL = findViewById(R.id.lowLightEnhancement);
         ToggleButton buttonShare = findViewById(R.id.shareButton);
         ImageButton buttonMyPlace = findViewById(R.id.my_btn);
-        ImageButton buttonHotPlace = findViewById(R.id.hot_btn);
+
 
         buttonSR.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -1504,12 +1500,6 @@ public class MainActivity extends Activity implements Callback, OnClickListener 
             }
         });
 
-        buttonHotPlace.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
 
 
 
